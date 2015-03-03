@@ -1,6 +1,7 @@
 Start generate ...
+<#import "macros.ftl" as my>
+<#assign attrJavaPackage = my.getJavaPackage() >
 
-<#assign attrJavaPackage = project.getProjectModule().getAttributeValue( "java_package", "com.noname" ) >
 <#assign resultPath = amit.toPath( attrJavaPackage, "\\.") >
 
 
@@ -18,7 +19,7 @@ done: ${processed}
 done: ${processed}
 </#list>
 
-<#list amit.generate( "interface","interface.ftl", resultPath + "/%s.java" ) as processed>
+<#list amit.generate( "interface","interface.ftl", resultPath + "/intrf/%s.java" ) as processed>
 done: ${processed}
 </#list>
 

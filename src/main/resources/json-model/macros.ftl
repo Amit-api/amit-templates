@@ -128,7 +128,7 @@
 	<#assign jtype = javaType( item ) >
 	<#assign noarrayjtype = javaTypeNoArray( item ) >
 	<#assign name = item.getName() >	
-	<#assign Aname = amit.AUpper( item.getName() ) >
+	<#assign Aname = item.getName()?cap_first >
 	
 	/**
 	 * property ${name}

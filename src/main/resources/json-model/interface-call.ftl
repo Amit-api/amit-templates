@@ -16,8 +16,8 @@ public final class Call${objectName} {
 
 <#list object.getFunctions() as function >
 <#assign fname = function.getName() >
-<#assign ARfname = amit.AUpper( fname ) + "Request"  >
-<#assign APfname = amit.AUpper( fname ) + "Response"  >
+<#assign ARfname = fname?cap_first + "Request"  >
+<#assign APfname = fname?cap_first + "Response"  >
 		
 /**************************************************************************************************************
  * function ${ARfname}
