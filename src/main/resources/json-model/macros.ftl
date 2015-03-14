@@ -421,7 +421,7 @@
 <#-- generates implements interfaces exceptions                                                           -->
 <#-- *********************************************************************************************** -->
 <#macro extendsInterfaces items >
-<#assign javaPackage = getJavaPackage() >
+<#assign javaPackage = getJavaPackage() + ".intrf" >
 <#if items?size != 0 >extends
 <#list items as item >
 		${javaPackage}.${item}<#if item_has_next>, </#if>
