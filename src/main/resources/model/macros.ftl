@@ -290,15 +290,21 @@
 		<#assign saveFun = saveMember(item, "element.getValue()" ) >
 			jg.writeStartObject();
 			for( java.util.Map.Entry<java.lang.String, ${jtype}> element : ${elementValue}.entrySet() ) {
-				if(element.getKey() == null) {
+				if( element.getKey() == null ) {
 					throw new java.lang.IllegalArgumentException(
 						"name '${name}' from '${javaPackage}.${className}' has element with null key"
 					);					
 				}
-				if(element.getValue() != null) {
-					jg.writeFieldName( element.getKey() );
-					${saveFun}
+				if( element.getValue() == null ) {
+					throw new java.lang.IllegalArgumentException(
+						String.format(
+							"name '${name}' from '${javaPackage}.${className}.%s' has element with null value",
+							element.getKey()
+						)
+					);					
 				}
+				jg.writeFieldName( element.getKey() );
+				${saveFun}
 			}
 			jg.writeEndObject();
 	<#else>
@@ -351,19 +357,19 @@
 <#-- *********************************************************************************************** -->
 <#-- generates memberReaders code                                                                    -->
 <#-- *********************************************************************************************** -->
-<#macro memberReaders items className>
+<#macro memberReaders items className classPackage>
 <#assign javaPackage = getJavaPackage() >
 	@SuppressWarnings("serial")
-	private static final java.util.Map<java.lang.String, ${javaPackage}.u.Lib.MemberReader<${javaPackage}.${className}>> MEMBER_READER = 
-		new java.util.HashMap<java.lang.String, ${javaPackage}.u.Lib.MemberReader<${javaPackage}.${className}>>() {{
+	private static final java.util.Map<java.lang.String, ${javaPackage}.u.Lib.MemberReader<${classPackage}.${className}>> MEMBER_READER = 
+		new java.util.HashMap<java.lang.String, ${javaPackage}.u.Lib.MemberReader<${classPackage}.${className}>>() {{
 <#list items as item >
 	<#assign type = item.getTypeName()>
 	<#assign jtype = javaTypeNoArray( item ) >
 	<#assign name = item.getName() >
 	<#assign Aname = item.getName()?cap_first >
 	<#assign elementValue = "object.set" + Aname >
-			put( "${name}", new ${javaPackage}.u.Lib.MemberReader<${javaPackage}.${className}>() {
-				public void read( com.fasterxml.jackson.core.JsonParser jp, ${javaPackage}.${className} object ) 
+			put( "${name}", new ${javaPackage}.u.Lib.MemberReader<${classPackage}.${className}>() {
+				public void read( com.fasterxml.jackson.core.JsonParser jp, ${classPackage}.${className} object ) 
 					throws java.io.IOException {
 	<#if item.isArray() >
 					if( !jp.isExpectedStartArrayToken() ) {
@@ -374,6 +380,11 @@
 					
 					java.util.List<${jtype}> list = new java.util.ArrayList<${jtype}>();
 					while (jp.nextToken() != com.fasterxml.jackson.core.JsonToken.END_ARRAY) {
+						if( jp.getCurrentToken() == com.fasterxml.jackson.core.JsonToken.VALUE_NULL ) {
+							throw new com.fasterxml.jackson.core.JsonParseException( jp,
+								"array '${className}.${name}' has null element"
+							);
+						}
 						list.add( ${readMember(item)} );
 					}
 						
@@ -406,11 +417,11 @@
 <#-- *********************************************************************************************** -->
 <#-- generates writeMembersFunction code                                                                    -->
 <#-- *********************************************************************************************** -->
-<#macro writeMembersFunction items className baseClassName>
+<#macro writeMembersFunction items className baseClassName classPackage >
 <#assign javaPackage = getJavaPackage() >
 	public static void write(
 		com.fasterxml.jackson.core.JsonGenerator jg,
-		${javaPackage}.${className} object
+		${classPackage}.${className} object
 	) throws java.io.IOException {
 		jg.writeStartObject();
 <#if baseClassName != '' >		
@@ -427,17 +438,17 @@
 <#-- *********************************************************************************************** -->
 <#-- generates readMemberFunction code                                                               -->
 <#-- *********************************************************************************************** -->
-<#macro readMemberFunction items className>
+<#macro readMemberFunction items className classPackage>
 <#assign javaPackage = getJavaPackage() >
-	public static ${javaPackage}.${className} read(
+	public static ${classPackage}.${className} read(
 		com.fasterxml.jackson.core.JsonParser jp
 	) throws java.io.IOException {
-		${javaPackage}.${className} result 
-			= new ${javaPackage}.${className}();
+		${classPackage}.${className} result 
+			= new ${classPackage}.${className}();
 					
 		while( jp.nextToken() == com.fasterxml.jackson.core.JsonToken.FIELD_NAME ) {
 			java.lang.String fieldName = jp.getCurrentName();
-			${javaPackage}.u.Lib.MemberReader<${javaPackage}.${className}> reader 
+			${javaPackage}.u.Lib.MemberReader<${classPackage}.${className}> reader 
 				= MEMBER_READER.get(fieldName);
 			
 			jp.nextToken();
@@ -527,4 +538,30 @@
 	</#list>				
 		}};
 </#if>
+</#macro>
+
+<#-- *********************************************************************************************** -->
+<#-- generates throws exceptions                                                           -->
+<#-- *********************************************************************************************** -->
+<#macro throwsExceptions items >
+<#assign javaPackage = getJavaPackage() >
+<#if items?size != 0 >throws
+<#list items as item >
+		${javaPackage}.${item}<#if item_has_next>, <#else>;</#if>
+</#list>
+<#else>
+;
+</#if>
+</#macro>
+
+<#-- *********************************************************************************************** -->
+<#-- generates implements interfaces exceptions                                                           -->
+<#-- *********************************************************************************************** -->
+<#macro extendsInterfaces items >
+<#assign javaPackage = getJavaPackage() + ".intrf" >
+<#if items?size != 0 >extends
+<#list items as item >
+		${javaPackage}.${item}<#if item_has_next>, </#if>
+</#list>
+</#if>						
 </#macro>
