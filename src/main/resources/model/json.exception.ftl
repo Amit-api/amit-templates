@@ -19,9 +19,9 @@ public class ${objectName}Serializer {
 
 <@my.readDynamicMembersFunction children=childrenTypes className=objectName />
 
-<@my.writeMembersFunction items=object.getAllMembers() className=objectName baseClassName=baseClassName classPackage=modelJavaPackage />
+<@my.writeMembersFunction items=object.getAllMembers() className=objectName baseClassName=baseClassName classPackage=modelJavaPackage serializerPrefix="" />
 
 <@my.writeDynamicMembersFunction children=childrenTypes className=objectName />
 
-<@my.memberReaders items=object.getAllMembers() className=objectName classPackage=modelJavaPackage />
+<@my.memberReaders items=object.getAllMembers() className=objectName classPackage=modelJavaPackage serializerPrefix="" />
 }

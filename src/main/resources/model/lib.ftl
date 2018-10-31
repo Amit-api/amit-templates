@@ -11,8 +11,11 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import java.util.UUID;
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
+import com.fasterxml.jackson.core.util.JsonParserSequence;
+import com.fasterxml.jackson.core.JsonParseException;
+
+import java.util.Map;
 
 public class Lib {	
 	public interface JsonWriter {
@@ -26,18 +29,66 @@ public class Lib {
 	public interface MemberReader<T> {
 		void read( JsonParser jp, T object ) throws IOException;
 	}
-
-	public static UUID parseUUID( JsonParser jp ) throws IOException {
-		if( jp.getCurrentToken() == JsonToken.VALUE_NULL ) {
-			return null;
-		}
-		return UUID.fromString( jp.getText() );
-	}	
 	
-	public static LocalDateTime parseDate( JsonParser jp ) throws IOException {
-		if( jp.getCurrentToken() == JsonToken.VALUE_NULL ) {
-			return null;
+	public static <T> void readType( JsonParser jp, T result, Map<String, MemberReader<T>> readers ) throws IOException {
+		while( jp.nextToken() == JsonToken.FIELD_NAME ) {
+			String fieldName = jp.getCurrentName();
+			MemberReader<T> reader = readers.get(fieldName);
+			
+			jp.nextToken();
+			if( reader == null ) {
+				jp.skipChildren(); 
+			} else {
+				reader.read( jp, result );
+			}
 		}
-		return LocalDateTime.parse( jp.getText() );
+	}
+	
+	public static <T> T readDynamicType( JsonParser jp, Map<String, JsonReader<? extends T>> readers, JsonReader<? extends T> defaultReader, String className ) throws java.io.IOException {
+		if( jp.getCurrentToken() == null) {
+			jp.nextToken();
+		}
+		if( jp.getCurrentToken() != JsonToken.START_OBJECT ) {
+			throw new JsonParseException( jp, String.format( "expected  object of type '%s'", className ) );
+		}
+		
+		TokenBuffer tb = null;
+		try {
+			while( jp.nextToken() == JsonToken.FIELD_NAME ) {
+				String name = jp.getCurrentName();
+				jp.nextToken(); 
+				
+				if( name.equals( "__type" ) ) {
+					String typeName = jp.getText(); 
+					JsonReader<? extends T> reader = readers.get( typeName );
+						
+					if( reader == null ) {
+						throw new JsonParseException( jp, String.format( "expected  object of type '%s'", className ) );					
+					}
+						
+					if( tb != null ) { 
+						jp = JsonParserSequence.createFlattened( tb.asParser(jp), jp );
+				    }
+						
+					return reader.read( jp );
+				}
+					
+				if (tb == null) {
+					tb = new TokenBuffer(jp);
+				}
+	
+				tb.writeFieldName(name);
+				tb.copyCurrentStructure(jp);
+			}
+			
+			if( defaultReader == null ) {
+				throw new JsonParseException( jp, String.format( "expected  object of type '%s'", className ) );
+			}
+			return defaultReader.read( tb.asParser(jp) );
+		} finally {
+			if( tb != null ) {
+				tb.close();
+			}
+		}
 	}
 }

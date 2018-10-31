@@ -12,7 +12,15 @@ package ${thisJavaPackage};
 /**
  * type ${objectName}
  */
-public class ${objectName}Serializer {		
+public class ${objectName}Serializer {
+
+	<@my.writeValueFunction className=objectName classPackage=modelJavaPackage />
+	
+	<@my.readValueFunction className=objectName classPackage=modelJavaPackage />
+
+	/**
+	 * write dynamic ${objectName} enum
+	 */
 	public static void writeDynamic(
 		com.fasterxml.jackson.core.JsonGenerator jg,
 		${modelJavaPackage}.${objectName} object
@@ -25,6 +33,9 @@ public class ${objectName}Serializer {
 		}
 	}
 	
+	/**
+	 * read dynamic ${objectName} enum
+	 */
 	@SuppressWarnings("incomplete-switch")
 	public static ${modelJavaPackage}.${objectName} readDynamic(
 			com.fasterxml.jackson.core.JsonParser jp
