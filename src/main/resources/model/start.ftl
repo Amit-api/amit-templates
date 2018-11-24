@@ -37,6 +37,10 @@ done: ${processed}
 done: ${processed}
 </#list>
 
+<#list amit.generate( "interface","interface.async.ftl", resultPath + "/intrf/async/%s.java" ) as processed>
+done: ${processed}
+</#list>
+
 <#list amit.generate( "interface","json.call.ftl", resultPath + "/json/call/Call%s.java" ) as processed>
 done: ${processed}
 </#list>

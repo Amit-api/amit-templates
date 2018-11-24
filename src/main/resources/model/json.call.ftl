@@ -47,7 +47,32 @@ public static final class ${ARfname} {
 <@my.equalsFunction items=function.getArguments() className=ARfname />
 
 <@my.toStringFunction items=function.getArguments() className=ARfname />
+
+	/**
+	 * parse the ${ARfname}
+	 */
+	public static ${ARfname} parseJson(java.lang.String content) 
+		throws com.fasterxml.jackson.core.JsonParseException, java.io.IOException {
 		
+		try( com.fasterxml.jackson.core.JsonParser p = ${modelJavaPackage}.u.Lib.JSON_FACTORY.createParser(content)) {
+			return readDynamic(p);
+		}
+	}
+	
+	/**
+	 * convert to ${ARfname} json string
+	 */
+	public String toJsonString() 
+		throws com.fasterxml.jackson.core.JsonParseException, java.io.IOException {
+		
+		java.io.Writer writer = new java.io.StringWriter();
+		try(com.fasterxml.jackson.core.JsonGenerator g = ${modelJavaPackage}.u.Lib.JSON_FACTORY.createGenerator(writer)) {
+			writeDynamic(g, this);
+		}
+		
+		return writer.toString();
+	}
+			
 	/**
 	 * validate the ${ARfname} request
 	 */
@@ -251,6 +276,31 @@ public static final class ${APfname} {
 	</#list>
 	}
 
+	/**
+	 * parse the ${APfname}
+	 */
+	public static ${APfname} parseJson(java.lang.String content) 
+		throws com.fasterxml.jackson.core.JsonParseException, java.io.IOException {
+		
+		try( com.fasterxml.jackson.core.JsonParser p = ${modelJavaPackage}.u.Lib.JSON_FACTORY.createParser(content)) {
+			return readDynamic(p);
+		}
+	}
+	
+	/**
+	 * convert to ${APfname} json string
+	 */
+	public String toJsonString() 
+		throws com.fasterxml.jackson.core.JsonParseException, java.io.IOException {
+		
+		java.io.Writer writer = new java.io.StringWriter();
+		try(com.fasterxml.jackson.core.JsonGenerator g = ${modelJavaPackage}.u.Lib.JSON_FACTORY.createGenerator(writer)) {
+			writeDynamic(g, this);
+		}
+		
+		return writer.toString();
+	}
+	
 	/**
 	 * dynamic write ${APfname} to json
 	 */

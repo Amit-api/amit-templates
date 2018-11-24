@@ -11,13 +11,16 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.fasterxml.jackson.core.util.JsonParserSequence;
 import com.fasterxml.jackson.core.JsonParseException;
 
 import java.util.Map;
 
-public class Lib {	
+public class Lib {
+	public static final JsonFactory JSON_FACTORY = new JsonFactory(); 
+
 	public interface JsonWriter {
 		void write( JsonGenerator jg, Object object ) throws IOException;
 	}
