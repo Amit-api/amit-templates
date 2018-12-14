@@ -35,11 +35,7 @@ import ${modelJavaPackage}.exception.ValidationException;
 import ${modelJavaPackage}.exception.ServerException;
 import ${modelJavaPackage}.exception.InternalException;
 
-public final class ${className} extends UrlMapHttpRequestHandler {
-	public ${className}() {
-		super(new ErrorHttpRequestHandler(HttpResponseStatus.NOT_FOUND, "unknown endpoint"));
-	}
-
+public final class ${className} {
 	
 <#list object.getBaseInterfaceNames() as interfaceName > 
 	<#assign ainterfaceName = interfaceName?uncap_first > 
@@ -48,7 +44,7 @@ public final class ${className} extends UrlMapHttpRequestHandler {
 	 */
 	private ${intrfJavaPackage}.${interfaceName} __${ainterfaceName};
 	
-	public void registerInterface( ${intrfJavaPackage}.${interfaceName} value ) {
+	public void registerInterface( ${intrfJavaPackage}.${interfaceName} value, UrlMapHttpRequestHandler parent ) {
 		if( __${ainterfaceName} != null ) {
 			throw new IllegalArgumentException( "interface ${interfaceName} is already registered" );
 		}
@@ -68,8 +64,8 @@ public final class ${className} extends UrlMapHttpRequestHandler {
 		/**
 		 * ${interfaceName}.${fname}
 		 */
-		registerHandler(
-			"/${fname?lower_case}",
+		parent.registerHandler(
+			"/api/${objectName?lower_case}/${fname?lower_case}",
 			new HttpRequestHandler() {
 				public CompletableFuture<FullHttpResponse> process(FullHttpRequest request) {
 					${requestClass} requestObject = null;

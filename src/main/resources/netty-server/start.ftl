@@ -9,4 +9,8 @@ Start generate ...
 done: ${processed}
 </#list>
 
+<#list amit.generate( "project","server.ftl", resultPath + "/Server.java" ) as processed>
+done: ${processed}
+</#list>
+
 End generate.
