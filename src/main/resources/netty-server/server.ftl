@@ -12,6 +12,8 @@ package ${thisJavaPackage};
 import com.amitapi.netty.server.NettyHttpServer;
 import com.amitapi.netty.server.UrlMapHttpRequestHandler;
 import com.amitapi.netty.server.ErrorHttpRequestHandler;
+import com.amitapi.netty.server.DocHttpRequestHandler;
+
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 public final class Server extends NettyHttpServer {
@@ -32,6 +34,9 @@ public final class Server extends NettyHttpServer {
 <#list project.getServices() as service >
 	<#assign serviceName = service.getName() >
 	<#assign handlerName = serviceName + "HttpHandler" >
+		// doc
+		result.registerHandler("/doc/api/${serviceName?lower_case}",
+			new DocHttpRequestHandler(Server.class, "${serviceName}.html"));
 		{
 			${handlerName} handler = new ${handlerName}();
 	<#list service.getBaseInterfaceNames() as interfaceName >
