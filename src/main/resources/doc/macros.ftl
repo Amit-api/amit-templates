@@ -53,7 +53,7 @@
 <#-- function expand argument to json -->
 <#-- *********************************************************************************************** -->
 <#macro argumentToJson argument depth maxDepth >
-${""?right_pad(2*depth)}"${argument.getName()}" : <@argumentValueToJson argument.getTypeName() argument.isMap() argument.isArray() depth maxDepth/></#macro>
+${""?right_pad(2*depth)}"${argument.getName()}" : <@argumentValueToJson argument.getTypeName() argument.isArray() argument.isMap() depth maxDepth/></#macro>
 
 <#-- *********************************************************************************************** -->
 <#-- function expand argument value to json -->
@@ -100,3 +100,17 @@ ${""?right_pad(2*depth+2)}"__type" : "${type.getName()}"<#if type.getMembers()?s
 </#list> 
 ${""?right_pad(2*depth)}}</#macro>
 
+<#-- *********************************************************************************************** -->
+<#-- function signature  -->
+<#-- *********************************************************************************************** -->
+<#macro functionSign function >
+<#assign fname = function.getName() >
+<#assign rtype = function.getReturn().getTypeName() >
+${rtype} ${fname}( <#list function.getArguments() as arg >${arg.getTypeName()} ${arg.getName()}<#if arg_has_next>, </#if></#list> ) <@throwsExceptions function.getThrowsExceptionNames() />
+</#macro>
+
+<#-- *********************************************************************************************** -->
+<#-- generates throws exceptions                                                           -->
+<#-- *********************************************************************************************** -->
+<#macro throwsExceptions items>
+throws ValidationException<#if items?size != 0 >, </#if><#list items as item >${item}<#if item_has_next>, </#if></#list></#macro>

@@ -253,6 +253,24 @@
       color: #1997c6;
     }
     
+    signature {
+    	colorL #e83e8;
+    	font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    	background-color: #1a1c22;
+    }
+    
+    a {
+      color: #1997c6;
+      text-decoration: none;
+      background-color: transparent;
+      -webkit-text-decoration-skip: objects;
+    }
+
+    a:hover {
+      color: #106382;
+      text-decoration: underline;
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -260,6 +278,19 @@
   <div class="bw">
     <h2>Service <accent>${objectName}</accent> doc and playground</h2>
     <p>${serviceDoc}</p>
+    <p>
+    	<h3>Index</h3>
+    	<ul>
+<#list object.getBaseInterfaceNames() as interfaceName >
+	
+	<#assign interfaceObj = project.getInterface( interfaceName ) >
+	<#list interfaceObj.getFunctions() as function >
+	<#assign fname = function.getName() >
+			<li>function <a href="#${fname}">${fname}</a></li>
+	</#list>			
+</#list>
+		</ul>
+	</p>    
 <#list object.getBaseInterfaceNames() as interfaceName > 
 	<#assign ainterfaceName = interfaceName?uncap_first > 
 	<#assign interfaceObj = project.getInterface( interfaceName ) >	
@@ -268,8 +299,10 @@
 		<#assign url = "/api/" + objectName?lower_case +"/" + fname?lower_case >
 		<#assign functionDoc = function.getAttributeValue( "doc", "No description is provided." ) >
 
-    <h4>Function <accent>${fname}</accent></h4>
+    <h4 id="${fname}">Function <accent>${fname}</accent></h4>
+    <p><signature><@my.functionSign function /></signature></p>
     <p>${functionDoc}</p>
+    
 
     <div class="bs">
       <div class="ahdr"><button id="${url}" class="ni ce dopost">POST : </button> ${url}</div>
@@ -294,7 +327,7 @@
 // 400 ValidationException Exception response
 {
   "exception" : {
-    "__type" : "ValidationException",
+    "__type" : "exception.validation",
     "code" : "the code of the validation",
     "reason" : "reazon why the validation did fail"
   }
@@ -311,6 +344,9 @@
     </div>
 	</#list>
 </#list>
+	<div class="bs">
+		<p></p>
+	</div>
   </div>
   <script>
     var tx = document.getElementsByTagName('textarea');
@@ -358,10 +394,23 @@
     		return text;
     	} 
     }
+    
+    function formatResp(status, content, startTime) {
+    	var now = new Date();
+    	var delta = now.getTime() - startTime;
+    	
+    	var result =  
+    		"///////////////////////////////////////////////////\n" +
+    		"// Status [" + status + "] " + delta + 
+    		"(msec) on " + now.getHours() + ":" + now.getMinutes() + ":" + 
+    		now.getSeconds() + "." + now.getMilliseconds() + "\n" +
+    		content;
+    		
+    	return result;
+    }
 
     function OnPost(event) {
       var url = event.target.id;      
-      hide(url);
 
       var content = document.getElementById(url + ":r").value;
       if (content) {
@@ -379,6 +428,7 @@
         }
       }
 
+      var startTime = new Date().getTime();
       fetch(url, {
         method: 'post',
         headers: {
@@ -387,9 +437,9 @@
         body: JSON.stringify(request)
       }).then(function(response) {
 		response.text().then(function(text) {
-      		display(url, "// Status: [" + response.status + "]\n" + formatJson(text));
+      		display(url, formatResp(response.status, formatJson(text), startTime));
       	}).catch(function (error) {
-      		display(url, "// Status: [" + response.status + "]\n" + error);
+      		display(url, formatResp(response.status, error, startTime));
       	});
       }).catch(function (error) {
         display(url, "call failed: " + error.message);
