@@ -30,13 +30,16 @@ public final class Server extends NettyHttpServer {
 		UrlMapHttpRequestHandler result = new UrlMapHttpRequestHandler(
 			new ErrorHttpRequestHandler(HttpResponseStatus.NOT_FOUND, "endpoint not found")
 		);
-		
+		// doc index
+		result.registerHandler("/doc",
+			new DocHttpRequestHandler(Server.class, "index.html"));
+				
 <#list project.getServices() as service >
 	<#assign serviceName = service.getName() >
 	<#assign handlerName = serviceName + "HttpHandler" >
 		// doc
 		result.registerHandler("/doc/api/${serviceName?lower_case}",
-			new DocHttpRequestHandler(Server.class, "${serviceName}.html"));
+			new DocHttpRequestHandler(Server.class, "p/${serviceName}.html"));
 		{
 			${handlerName} handler = new ${handlerName}();
 	<#list service.getBaseInterfaceNames() as interfaceName >

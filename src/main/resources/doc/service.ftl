@@ -1,4 +1,6 @@
+<#import "macros.ftl" as my>
 <#assign objectName = object.getName() >
+<#assign serviceDoc = object.getAttributeValue( "doc", "No description is provided." ) >
 <!doctype html>
 
 <html lang="en">
@@ -246,49 +248,65 @@
       font-size: 1rem;
       color: #1997c6;
     }
+    
+    accent {
+      color: #1997c6;
+    }
+    
   </style>
 </head>
 
 <body>
   <div class="bw">
-    <h2>Service <b>${objectName}</b> doc and playground</h2>
-    <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-      magna
-      aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-      consequat.
-      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
-      sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-    </p>
+    <h2>Service <accent>${objectName}</accent> doc and playground</h2>
+    <p>${serviceDoc}</p>
 <#list object.getBaseInterfaceNames() as interfaceName > 
 	<#assign ainterfaceName = interfaceName?uncap_first > 
 	<#assign interfaceObj = project.getInterface( interfaceName ) >	
 		<#list interfaceObj.getFunctions() as function >
 		<#assign fname = function.getName() >
 		<#assign url = "/api/" + objectName?lower_case +"/" + fname?lower_case >
+		<#assign functionDoc = function.getAttributeValue( "doc", "No description is provided." ) >
 
-    <h4>${fname} call</h4>
-    <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-      magna
-      aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-      consequat.
-      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-    </p>
+    <h4>Function <accent>${fname}</accent></h4>
+    <p>${functionDoc}</p>
 
     <div class="bs">
       <div class="ahdr"><button id="${url}" class="ni ce dopost">POST : </button> ${url}</div>
       <p>
         Request Content:
-        <textarea id="${url}:r" cols="80">
-{
-  "a": "asdas",
-  "b": "ssf" 
-}</textarea>
+        <textarea id="${url}:r" cols="80"><@my.functionToJson function /></textarea>
       </p>
       <p id="${url}:s" style="display: none;">
         Response Content:
         <textarea id="${url}:p" cols="80" readonly></textarea>
+      </p>
+      <p id="${url}:t">
+      	Sample Responses: 
+      	<textarea cols="80" readonly>
+////////////////////////////////////////////////////////////////
+// 200 Ok response
+{
+  "result" : <@my.typeNameToJson function.getReturn().getTypeName() function.getReturn().isArray() function.getReturn().isMap() />
+}
+
+////////////////////////////////////////////////////////////////
+// 400 ValidationException Exception response
+{
+  "exception" : {
+    "__type" : "ValidationException",
+    "code" : "the code of the validation",
+    "reason" : "reazon why the validation did fail"
+  }
+}
+	<#list function.getThrowsExceptionNames() as exceptionName >
+	
+////////////////////////////////////////////////////////////////
+// 400 ${exceptionName} Exception response
+{
+  "exception": <@my.typeNameToJson exceptionName false false />
+}
+	</#list></textarea>
       </p>
     </div>
 	</#list>
@@ -308,7 +326,9 @@
     function display(path, message) {
       var result = document.getElementById(path + ":p");
       var section = document.getElementById(path + ":s");
+      var sampleResp = document.getElementById(path + ":t");
       section.style.display = "block";
+      sampleResp.style.display = "none";
       result.value = message;
       resize(result);
     }
@@ -329,6 +349,15 @@
     for (var i = 0; i < bt.length; i++) {
       bt[i].addEventListener("click", OnPost, false)
     }
+    
+    function formatJson(text) {
+    	try {
+    		var json = JSON.parse(text);
+    		return JSON.stringify(json, null, 2);
+    	} catch(error) {
+    		return text;
+    	} 
+    }
 
     function OnPost(event) {
       var url = event.target.id;      
@@ -344,7 +373,7 @@
       if (content != null) {
         try {
           request = JSON.parse(content);
-        } catch( error ) {
+        } catch(error) {
           display(url, "Invalid request: " + error.message);
           return;
         }
@@ -355,9 +384,13 @@
         headers: {
           "Content-type": "application/json; charset=UTF-8",
         },
-        body: request
-      }).then(function(response){
-		display(url, response);
+        body: JSON.stringify(request)
+      }).then(function(response) {
+		response.text().then(function(text) {
+      		display(url, "// Status: [" + response.status + "]\n" + formatJson(text));
+      	}).catch(function (error) {
+      		display(url, "// Status: [" + response.status + "]\n" + error);
+      	});
       }).catch(function (error) {
         display(url, "call failed: " + error.message);
       });
