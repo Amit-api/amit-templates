@@ -8,7 +8,8 @@
 package ${thisJavaPackage};
 
 import java.util.Map; 
-import java.util.List; 
+import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Exception thrown if the request didn't pass the server validation
@@ -52,6 +53,17 @@ public class ValidationException extends ServerException {
     public String getMessage() {
         return String.format( "%s: %s", code, reason );
     }
+	
+	/**
+	 * validate that pattern is matched
+	 */
+	public static void matchPattern( Pattern pattern, String prefix, String name, String value ) throws ValidationException {
+		if( value != null && !pattern.matcher(value).matches()) {
+			throw new ValidationException()
+				.withCode( String.format("arg.%s%s.regex", prefix, name) )
+				.withReason( String.format( "the '%s%s' value must match '%s' pattern", prefix, name, pattern.pattern() ) );			
+		}
+	}
 	
 	/**
 	 * validate that value is not null 

@@ -570,4 +570,7 @@
 <#if cond.getType().name() == "SMALLER_OR_EQ" >
 		ValidationException.notBigger( ${prefix}, ".${cond.getName()}",  ${field}, ${cond.getValue()} );
 </#if>				
+<#if cond.getType().name() == "REGEX" >
+		ValidationException.matchPattern( pattern_${cond.getName()}, ${prefix}, ".${cond.getName()}", ${field} );
+</#if>
 </#macro>

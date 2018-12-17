@@ -12,6 +12,15 @@ package ${thisJavaPackage};
 import ${modelJavaPackage}.exception.ValidationException;
 
 public final class ${objectName}Validation {
+<#list object.getFieldConditions() as fcond >
+	<#list fcond.getConditions() as cond >
+		<#if cond.getType().name() == "REGEX" >
+	private static final java.util.regex.Pattern pattern_${fcond.getName()} = 
+		java.util.regex.Pattern.compile(${cond.getValue()});
+		</#if>
+	</#list>
+</#list>
+
 	public static void validate( java.lang.String prefix, ${modelJavaPackage}.${objectType} object ) throws ValidationException {
 <#assign typeMember = project.getType(objectType) >
 <#list object.getFieldConditions() as fcond >
